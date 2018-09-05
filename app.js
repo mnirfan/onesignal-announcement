@@ -13,6 +13,7 @@ mongoose.connect(process.env.MONGODB_URL)
 var index = require('./routes/index');
 var users = require('./routes/users');
 var announcement = require('./routes/announcement');
+var selection = require('./routes/selection');
 var auth = require('./middleware/auth')
 
 var app = express();
@@ -33,6 +34,7 @@ app.use('/', index);
 app.use(cors())
 app.use('/api/', auth)
 app.use('/api/announcement', announcement)
+app.use('/api/selection', selection)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

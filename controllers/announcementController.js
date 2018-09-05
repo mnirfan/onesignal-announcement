@@ -1,27 +1,27 @@
 var fs = require('fs')
 var axios = require('axios')
-var Anouncement = require('../models/Announcement')
+var Announcement = require('../models/Announcement')
 
 module.exports = {
-  create: function (req, res) {
+  create: async function (req, res) {
     var images = req.files.map(file => {
       return file.filename
     })
-    Anouncement.create({
-      title: req.body.title,
-      subtitle: req.body.subtitle,
-      content: req.body.content,
-      images: images,
-      author: req.user.name,
-      scope: req.body.scope
-    })
-    .then(annc => {
-      if (annc) {
+    try {
+      var announcement = await Announcement.create({
+        title: req.body.title,
+        subtitle: req.body.subtitle,
+        content: req.body.content,
+        images: images,
+        author: req.user.name,
+        scope: req.body.scope
+      })
+      if (announcement) {
         var headers = {
           "Content-Type": "application/json; charset=utf-8",
           "Authorization": "Basic MTA5OGYwZDItNWQyNi00NmRlLTk5YzAtOTQ2YWM4MjExZmQ3"
         };
-        axios({
+        var result = await axios({
           url: 'https://onesignal.com/api/v1/notifications',
           method: 'post',
           headers,
@@ -37,28 +37,36 @@ module.exports = {
             contents: { en: req.body.title }
           }
         })
-        .then(data => {
-          console.log(data);
-          res.json(annc)
-        })
-        .catch(err => {
-          console.log(err.response);
-          
-          res.json(err.response.statusText)
-          return
-        })
+        console.log(result.data);
+        res.json(result.data)
       }
       else {
         res.status(500).json({ message: 'failed' })
       }
-    })
-    .catch(err => {
+    }
+    catch (err) {
       images.forEach(image => {
         fs.unlink(`public/uploads/${image}`)
       })
       res.status(500).json({
         message: err.message
       })
-    })
+    }
+  },
+  all: async function (req, res) {
+    try {
+      var annc = await Announcement.find({})
+      res.json(annc)
+    } catch (err) {
+      res.status(500).json(err.message)
+    }
+  },
+  detail: async function (req, res) {
+    try {
+      var annc = await Announcement.findById(req.params.id)
+      res.json(annc)
+    } catch (error) {
+      res.status(500).json(err.message)
+    }
   }
 }
