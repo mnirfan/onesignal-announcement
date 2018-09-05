@@ -1,12 +1,19 @@
+require('dotenv').config();
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var cors = require('cors');
+
+mongoose.Promise = global.Promise;
+mongoose.connect(process.env.MONGODB_URL)
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+var announcement = require('./routes/announcement');
+var auth = require('./middleware/auth')
 
 var app = express();
 
@@ -20,10 +27,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api/static', express.static(path.join(__dirname, 'public', ), { maxAge: '1d' }));
 
 app.use('/', index);
-app.use('/users', users);
+app.use(cors())
+app.use('/api/', auth)
+app.use('/api/announcement', announcement)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
