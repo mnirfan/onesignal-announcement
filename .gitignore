@@ -33,3 +33,4 @@ public/uploads/*
 !public/uploads/README.md
 
 .env
+.vscode
